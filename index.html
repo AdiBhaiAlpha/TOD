@@ -43,7 +43,7 @@
             width: 60px;
             position: absolute;
             animation: float 2s infinite ease-in-out;
-            transform-origin: center 80%; /* বোতলের কেন্দ্র থেকে স্পিন করার জন্য */
+            transform-origin: 50% 70%; /* বোতলের কেন্দ্রের কাছাকাছি স্পিন করার জন্য */
         }
 
         @keyframes float {
@@ -98,77 +98,6 @@
 
             bottle.style.transition = 'transform 3s ease-out'; // Smooth spinning animation
             bottle.style.transform = `rotate(-${degree}deg)`; // Rotate bottle in CCW direction
-
-            setTimeout(() => {
-                bottle.style.transition = ''; // Reset transition
-            }, 3000); // After 3 seconds
-        });
-    </script>
-</body>
-</html>
-            align-items: center;
-            position: relative;
-            background-color: #fff;
-        }
-
-        #bottle {
-            width: 60px;
-            position: absolute;
-            animation: float 2s infinite ease-in-out;
-        }
-
-        @keyframes float {
-            0%, 100% {
-                transform: translateY(0);
-            }
-            50% {
-                transform: translateY(-10px);
-            }
-        }
-
-        #spinButton {
-            position: absolute;
-            bottom: -30px;
-            padding: 10px 20px;
-            cursor: pointer;
-        }
-
-        footer {
-            position: absolute;
-            bottom: 10px;
-            text-align: center;
-            width: 100%;
-            font-size: 12px;
-        }
-    </style>
-</head>
-<body>
-    <div class="circle">
-        <div class="inner-circle">
-            <!-- SVG কাচের বোতল -->
-            <svg id="bottle" viewBox="0 0 100 200" xmlns="http://www.w3.org/2000/svg">
-                <!-- বোতলের নিচের অংশ -->
-                <ellipse cx="50" cy="170" rx="30" ry="15" fill="lightblue" />
-                <!-- বোতলের মূল অংশ -->
-                <rect x="20" y="50" width="60" height="120" rx="30" ry="30" fill="lightblue" />
-                <!-- বোতলের গলা -->
-                <rect x="35" y="20" width="30" height="30" rx="15" ry="15" fill="lightblue" />
-                <!-- বোতলের ঢাকনা -->
-                <rect x="35" y="10" width="30" height="10" fill="#ccc" />
-            </svg>
-            <button id="spinButton">Spin</button>
-        </div>
-    </div>
-    <footer>
-        <p>&copy; 2024 Chitron Bhattacharjee. All rights reserved.</p>
-    </footer>
-    <script>
-        document.getElementById('spinButton').addEventListener('click', function() {
-            const bottle = document.getElementById('bottle');
-            let degree = Math.floor(Math.random() * 360); // Random direction after spin
-
-            bottle.style.transition = 'transform 3s ease-out'; // Smooth spinning animation
-            bottle.style.transform = `rotate(${degree}deg)`; // Rotate bottle
 
             setTimeout(() => {
                 bottle.style.transition = ''; // Reset transition
