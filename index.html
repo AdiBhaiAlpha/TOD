@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Spin the Bottle Game</title>
+    <title>3D Spin the Bottle Game</title>
     <style>
         body {
             margin: 0;
@@ -12,7 +12,7 @@
             justify-content: center;
             align-items: center;
             height: 100vh;
-            background-color: #f8f9fa;
+            background: linear-gradient(135deg, #a2c2e0, #f9f9f9);
             font-family: Arial, sans-serif;
         }
 
@@ -21,6 +21,27 @@
             flex-direction: column;
             align-items: center;
             text-align: center;
+            position: relative;
+        }
+
+        .circle-outer, .circle-middle {
+            position: absolute;
+            border-radius: 50%;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
+        }
+
+        .circle-outer {
+            width: 360px;
+            height: 360px;
+            border: 6px solid #333;
+            z-index: -2;
+        }
+
+        .circle-middle {
+            width: 240px;
+            height: 240px;
+            border: 6px solid #666;
+            z-index: -1;
         }
 
         .bottle-container {
@@ -28,27 +49,67 @@
             width: 300px;
             height: 300px;
             margin-bottom: 20px;
+            z-index: 1;
         }
 
         .bottle {
             width: 100%;
             height: 100%;
             transition: transform 3s ease-out;
+            filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.5));
         }
 
         .spin-button {
-            padding: 10px 20px;
+            padding: 12px 24px;
             font-size: 18px;
-            background-color: #007bff;
+            background: linear-gradient(145deg, #007bff, #0056b3);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.3s, transform 0.1s;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .spin-button:hover {
+            background: linear-gradient(145deg, #0056b3, #003d7a);
+        }
+
+        .spin-button:active {
+            transform: scale(0.98);
+        }
+
+        .popup {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 80%;
+            max-width: 400px;
+            padding: 20px;
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+            z-index: 2;
+        }
+
+        .popup-content {
+            margin-bottom: 20px;
+        }
+
+        .popup button {
+            padding: 10px 20px;
+            background: #007bff;
             color: #fff;
             border: none;
             border-radius: 5px;
             cursor: pointer;
-            transition: background-color 0.3s;
+            transition: background 0.3s;
         }
 
-        .spin-button:hover {
-            background-color: #0056b3;
+        .popup button:hover {
+            background: #0056b3;
         }
 
         footer {
@@ -57,12 +118,15 @@
             text-align: center;
             width: 100%;
             font-size: 14px;
+            color: #333;
         }
     </style>
 </head>
 <body>
 
 <div class="game-container">
+    <div class="circle-outer"></div>
+    <div class="circle-middle"></div>
     <div class="bottle-container">
         <!-- SVG bottle -->
         <svg id="bottle" class="bottle" viewBox="0 0 100 200" xmlns="http://www.w3.org/2000/svg">
@@ -77,8 +141,18 @@
     <button id="spinButton" class="spin-button">Spin the Bottle</button>
 </div>
 
+<div id="popup" class="popup">
+    <div class="popup-content">
+        <h2>কিভাবে খেলবেন</h2>
+        <p>১. বোতলটি স্পিন করতে "Spin the Bottle" বোতামে ক্লিক করুন।<br>
+           ২. বোতলটি ঘুরে থামলে, বোতলের মুখ যেদিকে দেখাবে সেই দিকে মনোযোগ দিন।<br>
+           ৩. এই অবস্থায় আপনার সিদ্ধান্ত নিন বা অন্যদের সাথে আলোচনা করুন।</p>
+    </div>
+    <button onclick="closePopup()">Close</button>
+</div>
+
 <footer>
-    <p>&copy; 2024 Spin the Bottle Game. All rights reserved.</p>
+    <p>&copy; 2024 Chitron Bhattacharjee. All rights reserved.</p>
 </footer>
 
 <script>
@@ -88,6 +162,15 @@
 
         bottle.style.transform = `rotate(${randomDegree}deg)`;
     });
+
+    function closePopup() {
+        document.getElementById('popup').style.display = 'none';
+    }
+
+    // Show the popup on page load
+    window.onload = function() {
+        document.getElementById('popup').style.display = 'block';
+    }
 </script>
 
 </body>
