@@ -2,64 +2,679 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Luck Wheel</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light" />
+    <meta name="theme-color" content="#0f7a4a" />
+    <meta
+      name="description"
+      content="Luck Wheel — a playful spin-the-bottle picker. Give the green bottle a spin and let it point you to a direction."
+    />
+    <title>Luck Wheel — Spin the Bottle</title>
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='30' fill='%230f7a4a'/%3E%3Cpath d='M28 10h8v12c0 3 8 7 8 16v10a6 6 0 0 1-6 6H26a6 6 0 0 1-6-6V38c0-9 8-13 8-16V10z' fill='%23fff'/%3E%3C/svg%3E"
+    />
     <style>
+      :root {
+        --green-900: #0b5334;
+        --green-800: #0b6b41;
+        --green-700: #0f7a4a;
+        --green-600: #11854f;
+        --ink: #14251c;
+        --muted: #5b6f64;
+        --card: #ffffff;
+        --line: #dcebe2;
+        --chip-line: #cfe6d9;
+        --stage: min(72vw, 40vh, 340px);
+        --bottle-h: calc(var(--stage) * 0.68);
+        --label-r: calc(var(--stage) * -0.405);
+        font-size: 16px;
+      }
+
       * {
         margin: 0;
         padding: 0;
+        box-sizing: border-box;
       }
-      .title {
-        margin: 20px;
-        text-align: center;
+
+      html {
+        -webkit-text-size-adjust: 100%;
       }
-      .pointer-wrap {
-        width: 100%;
+
+      body {
+        min-height: 100vh;
+        min-height: 100dvh;
         display: flex;
+        flex-direction: column;
+        align-items: center;
         justify-content: center;
-        margin: 20px 0;
+        gap: 18px;
+        padding: 24px 16px;
+        font-family: ui-rounded, "SF Pro Rounded", "Segoe UI Variable", "Segoe UI",
+          system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+        color: var(--ink);
+        background:
+          radial-gradient(1100px 520px at 50% -12%, #dcf3e5 0%, rgba(220, 243, 229, 0) 62%),
+          radial-gradient(760px 420px at 108% 108%, #e3eefc 0%, rgba(227, 238, 252, 0) 58%),
+          #f4f8f5;
+        -webkit-font-smoothing: antialiased;
       }
-      #pointer {
-        height: 400px;
-        transition: transform 3000ms ease-in-out;
-      }
-      .btn-wrap {
+
+      /* ---------- Card ---------- */
+
+      .app {
+        width: min(100%, 520px);
+        padding: clamp(22px, 5.5vw, 36px) clamp(18px, 5vw, 36px) clamp(22px, 5vw, 30px);
         text-align: center;
+        background: var(--card);
+        border: 1px solid rgba(255, 255, 255, 0.9);
+        border-radius: clamp(24px, 6vw, 34px);
+        box-shadow:
+          0 26px 60px -28px rgba(11, 60, 36, 0.4),
+          0 6px 18px -8px rgba(11, 60, 36, 0.12);
+        animation: rise 0.55s cubic-bezier(0.2, 0.8, 0.3, 1) both;
       }
-      .btn {
-        width: 150px;
-        height: 40px;
-        background-color: cornflowerblue;
-        border: none;
-        border-radius: 20px;
-        box-shadow: 2px 2px 2px #ccc;
+
+      /* ---------- Header ---------- */
+
+      .eyebrow {
+        font-size: 12px;
+        font-weight: 800;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: var(--green-700);
+      }
+
+      h1 {
+        margin-top: 6px;
+        font-size: clamp(30px, 7.5vw, 38px);
+        font-weight: 850;
+        letter-spacing: -0.02em;
+        line-height: 1.1;
+      }
+
+      .tagline {
+        margin: 8px auto 0;
+        max-width: 36ch;
+        font-size: clamp(14px, 3.6vw, 15.5px);
+        line-height: 1.5;
+        color: var(--muted);
+      }
+
+      /* ---------- Stage / wheel ---------- */
+
+      .stage {
+        position: relative;
+        width: var(--stage);
+        height: var(--stage);
+        margin: clamp(18px, 4.5vw, 26px) auto 0;
         cursor: pointer;
+        touch-action: manipulation;
+        -webkit-tap-highlight-color: transparent;
+        user-select: none;
+        -webkit-user-select: none;
+      }
+
+      .stage.is-busy {
+        cursor: progress;
+      }
+
+      .wheel {
+        position: absolute;
+        inset: 0;
+        border-radius: 50%;
+        border: 2px dashed rgba(17, 133, 79, 0.38);
+      }
+
+      .wheel::before {
+        content: "";
+        position: absolute;
+        inset: 9px;
+        border-radius: 50%;
+        border: 1px solid rgba(17, 133, 79, 0.14);
+      }
+
+      .pointer {
+        position: absolute;
+        top: -13px;
+        left: 50%;
+        z-index: 5;
+        width: 0;
+        height: 0;
+        transform: translateX(-50%);
+        border-left: 11px solid transparent;
+        border-right: 11px solid transparent;
+        border-top: 16px solid var(--green-800);
+        filter: drop-shadow(0 2px 2px rgba(11, 60, 36, 0.25));
+      }
+
+      .slot {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform:
+          translate(-50%, -50%)
+          rotate(calc(var(--i) * 45deg))
+          translateY(var(--label-r))
+          rotate(calc(var(--i) * -45deg));
+      }
+
+      .slot-chip {
+        display: grid;
+        place-items: center;
+        min-width: 30px;
+        padding: 4px 6px;
+        font-size: clamp(11px, 3.2vw, 13px);
+        font-weight: 800;
+        letter-spacing: 0.04em;
+        color: var(--muted);
+        background: #fff;
+        border: 1px solid var(--chip-line);
+        border-radius: 999px;
+        box-shadow: 0 2px 6px rgba(16, 48, 32, 0.08);
+        transition:
+          background-color 0.25s ease,
+          color 0.25s ease,
+          border-color 0.25s ease,
+          box-shadow 0.25s ease,
+          transform 0.35s cubic-bezier(0.2, 1.4, 0.4, 1);
+      }
+
+      .slot.is-active .slot-chip {
+        color: #fff;
+        background: var(--green-800);
+        border-color: var(--green-800);
+        transform: scale(1.18);
+        box-shadow: 0 8px 16px -6px rgba(11, 107, 65, 0.55);
+      }
+
+      .bottle-layer {
+        position: absolute;
+        inset: 0;
+        display: grid;
+        place-items: center;
+        pointer-events: none;
+      }
+
+      .bottle-rot {
+        display: grid;
+        place-items: center;
+        width: 100%;
+        height: 100%;
+        transition: transform 4s cubic-bezier(0.2, 0.6, 0.2, 1);
+        will-change: transform;
+      }
+
+      .sway {
+        animation: sway 4.5s ease-in-out infinite alternate;
+      }
+
+      .bottle {
+        display: block;
+        height: var(--bottle-h);
+        width: auto;
+        user-select: none;
+        -webkit-user-drag: none;
+        filter: drop-shadow(0 10px 14px rgba(9, 50, 28, 0.25));
+      }
+
+      .hint {
+        margin-top: clamp(12px, 3vw, 16px);
+        font-size: 13px;
+        color: var(--muted);
+      }
+
+      /* ---------- Button ---------- */
+
+      .controls {
+        margin-top: clamp(16px, 4vw, 22px);
+      }
+
+      .spin-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        min-width: 220px;
+        min-height: 52px;
+        padding: 13px 30px;
+        font: inherit;
+        font-size: 16.5px;
+        font-weight: 800;
+        letter-spacing: 0.01em;
+        color: #fff;
+        background: linear-gradient(180deg, var(--green-600), var(--green-800));
+        border: 0;
+        border-radius: 999px;
+        cursor: pointer;
+        touch-action: manipulation;
+        -webkit-tap-highlight-color: transparent;
+        box-shadow:
+          0 12px 26px -10px rgba(11, 107, 65, 0.65),
+          inset 0 1px 0 rgba(255, 255, 255, 0.28);
+        transition:
+          transform 0.18s ease,
+          box-shadow 0.18s ease,
+          filter 0.18s ease;
+      }
+
+      .spin-btn:hover {
+        transform: translateY(-2px);
+        box-shadow:
+          0 16px 30px -10px rgba(11, 107, 65, 0.7),
+          inset 0 1px 0 rgba(255, 255, 255, 0.28);
+      }
+
+      .spin-btn:active {
+        transform: translateY(1px) scale(0.99);
+        box-shadow:
+          0 6px 14px -8px rgba(11, 107, 65, 0.6),
+          inset 0 1px 0 rgba(255, 255, 255, 0.2);
+      }
+
+      .spin-btn:focus-visible {
+        outline: 3px solid #6ed39b;
+        outline-offset: 3px;
+      }
+
+      .spin-btn[aria-disabled="true"] {
+        cursor: progress;
+        filter: saturate(0.75) brightness(0.97);
+        transform: none;
+      }
+
+      .spin-btn[aria-disabled="true"]:hover {
+        transform: none;
+        box-shadow:
+          0 12px 26px -10px rgba(11, 107, 65, 0.55),
+          inset 0 1px 0 rgba(255, 255, 255, 0.28);
+      }
+
+      .spin-btn.is-spinning::before {
+        content: "";
+        width: 15px;
+        height: 15px;
+        border: 2.5px solid rgba(255, 255, 255, 0.35);
+        border-top-color: #fff;
+        border-radius: 50%;
+        animation: spin 0.7s linear infinite;
+      }
+
+      /* ---------- Result ---------- */
+
+      .result {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+        margin-top: clamp(16px, 4vw, 22px);
+        padding: 13px 16px;
+        background: #f2f9f5;
+        border: 1px solid var(--line);
+        border-radius: 16px;
+      }
+
+      .result-head {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .result-label {
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+
+      .count-chip {
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--green-800);
+        background: #e2f3e9;
+        border: 1px solid #c9e9d6;
+        border-radius: 999px;
+        padding: 2px 8px;
+      }
+
+      .count-chip[hidden] {
+        display: none;
+      }
+
+      .result-value {
+        font-size: clamp(17px, 4.6vw, 21px);
+        font-weight: 800;
+        letter-spacing: -0.01em;
+        color: var(--ink);
+      }
+
+      .result.has-result .result-value {
+        color: var(--green-800);
+        animation: pop-in 0.35s cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+      }
+
+      /* ---------- Footer ---------- */
+
+      .app-footer {
+        font-size: 13px;
+        color: var(--muted);
+        text-align: center;
+        padding: 0 12px 4px;
+      }
+
+      .noscript {
+        margin-top: 14px;
+        font-size: 14px;
+        color: #8a4b00;
+        background: #fff6e8;
+        border: 1px solid #f5dcb3;
+        border-radius: 12px;
+        padding: 10px 14px;
+      }
+
+      /* ---------- Animations ---------- */
+
+      @keyframes rise {
+        from {
+          opacity: 0;
+          transform: translateY(14px);
+        }
+        to {
+          opacity: 1;
+          transform: none;
+        }
+      }
+
+      @keyframes sway {
+        from {
+          transform: rotate(-1.6deg);
+        }
+        to {
+          transform: rotate(1.6deg);
+        }
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      @keyframes pop-in {
+        from {
+          opacity: 0;
+          transform: translateY(6px) scale(0.92);
+        }
+        to {
+          opacity: 1;
+          transform: none;
+        }
+      }
+
+      /* ---------- Short/landscape screens: side-by-side layout so the
+             wheel, button and result all stay above the fold ---------- */
+
+      @media (max-height: 560px) and (min-width: 640px) {
+        :root {
+          --stage: min(46vh, 30vw, 260px);
+        }
+
+        body {
+          gap: 12px;
+          padding: 14px 16px;
+        }
+
+        .app {
+          display: grid;
+          grid-template-columns: auto minmax(230px, 1fr);
+          grid-template-areas:
+            "head    head"
+            "stage   hint"
+            "stage   controls"
+            "stage   result";
+          gap: 10px 28px;
+          align-items: center;
+          padding: 16px clamp(20px, 4vw, 32px);
+        }
+
+        .app header {
+          grid-area: head;
+        }
+
+        h1 {
+          font-size: clamp(24px, 4.5vh, 30px);
+          margin-top: 2px;
+        }
+
+        .tagline {
+          display: none;
+        }
+
+        .stage {
+          grid-area: stage;
+          margin: 0;
+          justify-self: center;
+          align-self: center;
+        }
+
+        .hint {
+          grid-area: hint;
+          margin-top: 0;
+          align-self: end;
+        }
+
+        .controls {
+          grid-area: controls;
+          margin-top: 0;
+        }
+
+        .result {
+          grid-area: result;
+          margin-top: 0;
+          align-self: start;
+          padding: 10px 14px;
+        }
+
+        .app noscript {
+          grid-column: 1 / -1;
+        }
+
+        .app-footer {
+          font-size: 12px;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .app,
+        .sway,
+        .result.has-result .result-value {
+          animation: none;
+        }
+
+        .spin-btn {
+          transition: none;
+        }
       }
     </style>
   </head>
   <body>
-    <h1 class="title">Luck Wheel</h1>
-    <div class="pointer-wrap">
-      <img id="pointer" src="./green_bottle.png" alt="pointer" />
-    </div>
-    <div class="btn-wrap">
-      <button id="btn" class="btn">Run</button>
-    </div>
+    <main class="app">
+      <header>
+        <p class="eyebrow">Decision maker</p>
+        <h1>Luck Wheel</h1>
+        <p class="tagline">
+          Spin the bottle and let chance pick a direction for you.
+        </p>
+      </header>
 
-    <footer style="text-align: center; margin-top: 20px; padding: 10px; background-color: #f0f0f0;">
+      <div class="stage" id="stage">
+        <div class="wheel" aria-hidden="true">
+          <span class="pointer"></span>
+          <span class="slot" style="--i: 0"><span class="slot-chip">N</span></span>
+          <span class="slot" style="--i: 1"><span class="slot-chip">NE</span></span>
+          <span class="slot" style="--i: 2"><span class="slot-chip">E</span></span>
+          <span class="slot" style="--i: 3"><span class="slot-chip">SE</span></span>
+          <span class="slot" style="--i: 4"><span class="slot-chip">S</span></span>
+          <span class="slot" style="--i: 5"><span class="slot-chip">SW</span></span>
+          <span class="slot" style="--i: 6"><span class="slot-chip">W</span></span>
+          <span class="slot" style="--i: 7"><span class="slot-chip">NW</span></span>
+        </div>
+        <div class="bottle-layer">
+          <div class="bottle-rot" id="bottleRot">
+            <div class="sway">
+              <img
+                class="bottle"
+                id="bottle"
+                src="./green_bottle.png"
+                width="833"
+                height="3000"
+                alt="A green glass bottle that spins to pick a direction"
+                draggable="false"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <p class="hint">Tip: you can also tap the wheel to spin</p>
+
+      <div class="controls">
+        <button class="spin-btn" id="btn" type="button">
+          <span id="btnLabel">Spin the bottle</span>
+        </button>
+      </div>
+
+      <section class="result" id="result" role="status" aria-live="polite">
+        <div class="result-head">
+          <span class="result-label">Result</span>
+          <span class="count-chip" id="countChip" hidden>1 spin</span>
+        </div>
+        <strong class="result-value" id="resultValue">Ready when you are</strong>
+      </section>
+
+      <noscript>
+        <p class="noscript">This page needs JavaScript to spin the bottle.</p>
+      </noscript>
+    </main>
+
+    <footer class="app-footer">
       &copy; 2024 Chitron Bhattacharjee. All rights reserved.
     </footer>
 
     <script>
-      let angle = 0
-      const pointer = document.querySelector('#pointer')
-      const btn = document.querySelector('#btn')
+      (function () {
+        var DIRECTIONS = [
+          "North",
+          "North-East",
+          "East",
+          "South-East",
+          "South",
+          "South-West",
+          "West",
+          "North-West",
+        ];
 
-      btn.addEventListener('click', function () {
-        angle = angle + 2 * 360 + Math.random() * 360
-        pointer.style.transform = `rotate(${angle}deg)`
-      })
+        var stage = document.getElementById("stage");
+        var rot = document.getElementById("bottleRot");
+        var btn = document.getElementById("btn");
+        var btnLabel = document.getElementById("btnLabel");
+        var resultBox = document.getElementById("result");
+        var resultValue = document.getElementById("resultValue");
+        var countChip = document.getElementById("countChip");
+        var slots = Array.prototype.slice.call(
+          document.querySelectorAll(".slot")
+        );
+        var reduceMotion = window.matchMedia(
+          "(prefers-reduced-motion: reduce)"
+        );
+
+        var angle = 0;
+        var spinning = false;
+        var spins = 0;
+        var finishTimer = 0;
+
+        function clearHighlights() {
+          slots.forEach(function (slot) {
+            slot.classList.remove("is-active");
+          });
+        }
+
+        function complete() {
+          if (!spinning) return;
+          spinning = false;
+          clearTimeout(finishTimer);
+
+          var mod = ((angle % 360) + 360) % 360;
+          var index = Math.round(mod / 45) % 8;
+
+          clearHighlights();
+          slots[index].classList.add("is-active");
+
+          spins += 1;
+          resultValue.textContent = "The bottle points " + DIRECTIONS[index];
+          resultBox.classList.add("has-result");
+          countChip.hidden = false;
+          countChip.textContent = spins === 1 ? "1 spin" : spins + " spins";
+
+          btn.classList.remove("is-spinning");
+          btnLabel.textContent = "Spin again";
+          btn.removeAttribute("aria-disabled");
+          btn.removeAttribute("aria-busy");
+          stage.classList.remove("is-busy");
+        }
+
+        function spin() {
+          if (spinning) return;
+          spinning = true;
+
+          clearHighlights();
+          resultValue.textContent = "Spinning…";
+          resultBox.classList.remove("has-result");
+
+          btn.classList.add("is-spinning");
+          btnLabel.textContent = "Spinning…";
+          btn.setAttribute("aria-disabled", "true");
+          btn.setAttribute("aria-busy", "true");
+          stage.classList.add("is-busy");
+
+          // Land on a random heading after a few full turns.
+          var currentMod = ((angle % 360) + 360) % 360;
+          var target = Math.random() * 360;
+          var delta = (target - currentMod + 360) % 360;
+          delta += (4 + Math.floor(Math.random() * 4)) * 360;
+          angle += delta;
+
+          var duration = reduceMotion.matches
+            ? 300
+            : Math.round(2800 + (delta / 360) * 140);
+
+          rot.style.transitionDuration = duration + "ms";
+          rot.style.transform = "rotate(" + angle + "deg)";
+
+          clearTimeout(finishTimer);
+          finishTimer = setTimeout(complete, duration + 500);
+        }
+
+        rot.addEventListener("transitionend", function (event) {
+          if (event.propertyName === "transform") complete();
+        });
+
+        btn.addEventListener("click", function (event) {
+          event.preventDefault();
+          spin();
+        });
+
+        // Extra affordance: clicking the wheel spins too (the button stays
+        // the accessible, keyboard-reachable control).
+        stage.addEventListener("click", spin);
+
+        document
+          .getElementById("bottle")
+          .addEventListener("dragstart", function (event) {
+            event.preventDefault();
+          });
+      })();
     </script>
   </body>
 </html>
